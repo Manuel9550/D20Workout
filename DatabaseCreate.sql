@@ -1,6 +1,25 @@
+
+DROP TABLE IF EXISTS FinishedExercise;
 DROP TABLE IF EXISTS D20WorkoutUser;
+DROP TABLE IF EXISTS Exercise;
 
 CREATE TABLE IF NOT EXISTS D20WorkoutUser (
+    Name VARCHAR NOT NULL PRIMARY KEY
+);
+
+CREATE TABLE IF NOT EXISTS Exercise (
+    RollNumber INTEGER NOT NULL PRIMARY KEY,
+    Name VARCHAR NOT NULL,
+    StartingAmount INTEGER NOT NULL,
+    IncrementAmount INTEGER NOT NULL,
+    Units VARCHAR NOT NULL
+);
+
+CREATE TABLE IF NOT EXISTS FinishedExercise (
     ID SERIAL,
-    Name VARCHAR NOT NULL
-)
+    UserName VARCHAR REFERENCES D20WorkoutUser (Name),
+    ExerciseDone INTEGER REFERENCES Exercise(Rollnumber),
+    AmountDone INTEGER NOT NULL,
+    Timestamp TIMESTAMP NOT NULL
+);
+
