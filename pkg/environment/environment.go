@@ -26,7 +26,7 @@ func GetEnvironmentVariables(logger *log.Logger) (EnvironmentSettings, bool) {
 		env.Heroku = true
 	}
 
-	ip, ok := os.LookupEnv("WAVE_API_IP")
+	ip, ok := os.LookupEnv("D20WORKOUT_API_IP")
 	if !ok {
 		// If we aren't hosting on heroku, we want an IP
 		if env.Heroku != true {
