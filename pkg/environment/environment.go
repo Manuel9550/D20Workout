@@ -37,9 +37,9 @@ func GetEnvironmentVariables(logger *log.Logger) (EnvironmentSettings, bool) {
 		}
 	}
 
-	connectionString, ok := os.LookupEnv("WAVE_API_CONNECTION_STRING")
+	connectionString, ok := os.LookupEnv("D20_WORKOUT_CAPI_CONNECTION_STRING")
 	if !ok {
-		logger.Error("missing_environment_variabl: WAVE_API_CONNECTION_STRING")
+		logger.Error("missing_environment_variable: D20_WORKOUT_CAPI_CONNECTION_STRING")
 		return env, ok
 	}
 
