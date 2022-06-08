@@ -3,19 +3,19 @@ package environment
 import (
 	"os"
 
-	"github.com/go-kit/kit/log"
-	"github.com/go-kit/kit/log/level"
+	log "github.com/sirupsen/logrus"
 )
 
 // If other environment variable are added in the future, they can be added to this struct
 type EnvironmentSettings struct {
-	PORT   string
-	Heroku bool
-	Ip     string
+	ConnectionString string
+	PORT             string
+	Heroku           bool
+	Ip               string
 }
 
 // Fetches the environment variables (Postgres connection string and hosting address)
-func GetEnvironmentVariables(logger log.Logger) (EnvironmentSettings, bool) {
+func GetEnvironmentVariables(logger *log.Logger) (EnvironmentSettings, bool) {
 
 	env := EnvironmentSettings{}
 
@@ -30,19 +30,26 @@ func GetEnvironmentVariables(logger log.Logger) (EnvironmentSettings, bool) {
 	if !ok {
 		// If we aren't hosting on heroku, we want an IP
 		if env.Heroku != true {
-			level.Error(logger).Log("missing_environment_variable", "D20_IP")
+			logger.Error("missing_environment_variable: D20_IP")
 			return env, ok
 		} else {
 			env.Ip = ""
 		}
 	}
 
-	portString, ok := os.LookupEnv("PORT")
+	connectionString, ok := os.LookupEnv("WAVE_API_CONNECTION_STRING")
 	if !ok {
-		level.Error(logger).Log("missing_environment_variable", "PORT")
+		logger.Error("missing_environment_variabl: WAVE_API_CONNECTION_STRING")
 		return env, ok
 	}
 
+	portString, ok := os.LookupEnv("PORT")
+	if !ok {
+		logger.Error("missing_environment_variable: PORT")
+		return env, ok
+	}
+
+	env.ConnectionString = connectionString
 	env.Ip = ip
 	env.PORT = portString
 

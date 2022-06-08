@@ -6,12 +6,13 @@ import (
 	"net/http"
 	"os"
 
+	"github.com/Manuel9550/d20-workout/pkg/dal"
 	"github.com/Manuel9550/d20-workout/pkg/environment"
 	"github.com/Manuel9550/d20-workout/pkg/health"
+	"github.com/Manuel9550/d20-workout/pkg/service"
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/chi/v5/middleware"
-	"github.com/go-kit/kit/log"
-	"github.com/go-kit/log/level"
+	"github.com/sirupsen/logrus"
 )
 
 // Where to keep the logs
@@ -22,10 +23,12 @@ func main() {
 
 	// Pre-App setup
 	// Setting up the logger
-	logger := log.NewLogfmtLogger(os.Stdout)
+	logger := logrus.Logger{
+		Out: os.Stdout,
+	}
 
 	// Get the environment variable we need
-	env, ok := environment.GetEnvironmentVariables(logger)
+	env, ok := environment.GetEnvironmentVariables(&logger)
 
 	if !ok {
 		os.Exit(-1)
@@ -40,17 +43,28 @@ func main() {
 
 		// Setting up the log file
 		logFile, err := os.OpenFile(logFilePath, os.O_CREATE|os.O_WRONLY|os.O_APPEND, 0644)
-		if err != nil {
-			level.Error(logger).Log("exit", err)
-		}
-
 		defer logFile.Close()
+		if err != nil {
+			logger.Error("exit", err)
+			os.Exit(-1)
+		}
 
 		// Want to write to terminal and file, if possible
 		mw := io.MultiWriter(os.Stdout, logFile)
 
-		logger = log.NewLogfmtLogger(log.NewSyncWriter(mw))
+		logger.Out = mw
 	}
+
+	// Create the database connection and db manager
+	dataManager, err := dal.NewDBManager(env.ConnectionString, &logger)
+	defer dataManager.DB.Close()
+	if err != nil {
+		logger.Error("exit", err)
+		os.Exit(-1)
+	}
+
+	// Create the service
+	service := service.NewService(dataManager, &logger)
 
 	r := chi.NewRouter()
 	r.Use(middleware.Logger)
@@ -60,9 +74,12 @@ func main() {
 
 	r.Get("/test", health.GetTest)
 
+	// Assigning the endpoints to the service methods. Make this more clean later!
+	r.Get("/user", service.CheckUser)
+
 	// If we are running on Heroku, it will listen on any interface
 	fulladdress := env.Ip + ":" + env.PORT
-	err := http.ListenAndServe(fulladdress, r)
+	err = http.ListenAndServe(fulladdress, r)
 	if err != nil {
 		fmt.Printf(err.Error())
 	}
