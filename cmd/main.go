@@ -23,12 +23,13 @@ func main() {
 
 	// Pre-App setup
 	// Setting up the logger
-	logger := logrus.Logger{
-		Out: os.Stdout,
-	}
+	logger := logrus.New()
+	logger.SetOutput(os.Stdout)
+
+	logger.Debug("Logrus started!")
 
 	// Get the environment variable we need
-	env, ok := environment.GetEnvironmentVariables(&logger)
+	env, ok := environment.GetEnvironmentVariables(logger)
 
 	if !ok {
 		os.Exit(-1)
@@ -52,19 +53,19 @@ func main() {
 		// Want to write to terminal and file, if possible
 		mw := io.MultiWriter(os.Stdout, logFile)
 
-		logger.Out = mw
+		logger.SetOutput(mw)
 	}
 
 	// Create the database connection and db manager
-	dataManager, err := dal.NewDBManager(env.ConnectionString, &logger)
-	defer dataManager.DB.Close()
+	dataManager, err := dal.NewDBManager(env.ConnectionString, logger)
 	if err != nil {
 		logger.Error("exit", err)
 		os.Exit(-1)
 	}
+	defer dataManager.DB.Close()
 
 	// Create the service
-	service := service.NewService(dataManager, &logger)
+	service := service.NewService(dataManager, logger)
 
 	r := chi.NewRouter()
 	r.Use(middleware.Logger)

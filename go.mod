@@ -12,5 +12,6 @@ require (
 
 require (
 	github.com/go-logfmt/logfmt v0.5.1 // indirect
+	github.com/lib/pq v1.10.6 // indirect
 	golang.org/x/sys v0.0.0-20210917161153-d61c044b1678 // indirect
 )

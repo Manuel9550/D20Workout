@@ -6,6 +6,7 @@ import (
 	"fmt"
 
 	"github.com/Manuel9550/d20-workout/pkg/entities"
+	_ "github.com/lib/pq"
 	"github.com/sirupsen/logrus"
 )
 
