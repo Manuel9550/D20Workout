@@ -3,6 +3,7 @@ package service
 import (
 	"context"
 	"encoding/json"
+	"errors"
 	"net/http"
 
 	"github.com/Manuel9550/d20-workout/pkg/dal"
@@ -31,7 +32,7 @@ func (service *D20Service) CheckUser(w http.ResponseWriter, r *http.Request) {
 	}
 
 	user, err := service.DM.GetUser(ctx, userName)
-	if err != nil {
+	if err != nil && !errors.Is(err, &dal.ResourceNotFoundError{}) {
 		service.respondWithError(w, 500, "An internal error occured")
 	} else {
 		service.respondWithJSON(w, 200, user)

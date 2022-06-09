@@ -58,7 +58,7 @@ func (dm *DBManager) GetUser(ctx context.Context, userName string) (*entities.Us
 			dm.Logger.WithFields(logrus.Fields{
 				"QueryError": err,
 				"Query":      queryString,
-			}).Info()
+			}).Error()
 			return nil, err
 		}
 
