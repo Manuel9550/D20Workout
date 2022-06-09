@@ -30,16 +30,16 @@ func GetEnvironmentVariables(logger *log.Logger) (EnvironmentSettings, bool) {
 	if !ok {
 		// If we aren't hosting on heroku, we want an IP
 		if env.Heroku != true {
-			logger.Error("missing_environment_variable: D20_IP")
+			logger.Error("missing_environment_variable: D20WORKOUT_API_IP")
 			return env, ok
 		} else {
 			env.Ip = ""
 		}
 	}
 
-	connectionString, ok := os.LookupEnv("D20_WORKOUT_CAPI_CONNECTION_STRING")
+	connectionString, ok := os.LookupEnv("D20_WORKOUT_API_CONNECTION_STRING")
 	if !ok {
-		logger.Error("missing_environment_variable: D20_WORKOUT_CAPI_CONNECTION_STRING")
+		logger.Error("missing_environment_variable: D20_WORKOUT_API_CONNECTION_STRING")
 		return env, ok
 	}
 
