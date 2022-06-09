@@ -35,7 +35,7 @@ func (service *D20Service) CheckUser(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		resourceNotFoundError, ok := err.(*dal.ResourceNotFoundError)
 		if ok {
-			service.respondWithJSON(w, 404, resourceNotFoundError.Error())
+			service.respondWithError(w, 404, resourceNotFoundError.Error())
 		} else {
 			service.respondWithError(w, 500, "An internal error occured")
 		}

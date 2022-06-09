@@ -21,7 +21,7 @@ type ResourceNotFoundError struct {
 }
 
 func (e ResourceNotFoundError) Error() string {
-	return fmt.Sprintf("Could not find resource %s of type: %s", e.resourceName, e.resourceType)
+	return fmt.Sprintf("Could not find resource '%s' of type: '%s'", e.resourceName, e.resourceType)
 }
 
 func NewDBManager(connectionString string, logger *logrus.Logger) (*DBManager, error) {
