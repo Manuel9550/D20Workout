@@ -20,7 +20,7 @@ type ResourceNotFoundError struct {
 	resourceName string
 }
 
-func (e *ResourceNotFoundError) Error() string {
+func (e ResourceNotFoundError) Error() string {
 	return fmt.Sprintf("Could not find resource %s of type: %s", e.resourceName, e.resourceType)
 }
 
