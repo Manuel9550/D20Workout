@@ -139,6 +139,10 @@ func (dm *DBManager) ValidatePoint(ctx context.Context, point *entities.Point) e
 func (dm *DBManager) AddUserPoint(ctx context.Context, exercisePoint *entities.Point) error {
 	err := dm.ValidatePoint(ctx, exercisePoint)
 	if err != nil {
+		dm.Logger.WithFields(logrus.Fields{
+			"PointError": "Error When validating point",
+			"Error":      err,
+		}).Error()
 		return err
 	}
 
