@@ -6,6 +6,7 @@ import (
 	"net/http"
 
 	"github.com/Manuel9550/d20-workout/pkg/dal"
+	"github.com/Manuel9550/d20-workout/pkg/entities"
 	"github.com/go-chi/chi/v5"
 	"github.com/sirupsen/logrus"
 )
@@ -56,17 +57,59 @@ func (service *D20Service) CreateUser(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	user, err := service.DM.CreateUser(ctx, userName)
+	// Does User Already Exists?
+	user, err := service.DM.GetUser(ctx, userName)
 	if err != nil {
-		resourceDuplicateError, ok := err.(*dal.ResourceDuplicateError)
+		_, ok := err.(*dal.ResourceNotFoundError)
 		if ok {
-			service.respondWithError(w, 409, resourceDuplicateError.Error())
+			// Actually Create the user!
+			user, err := service.DM.CreateUser(ctx, userName)
+			if err != nil {
+				resourceDuplicateError, ok := err.(*dal.ResourceDuplicateError)
+				if ok {
+					service.respondWithError(w, 409, resourceDuplicateError.Error())
+				} else {
+					service.respondWithError(w, 500, "An internal error occured")
+				}
+			} else {
+				service.respondWithJSON(w, 201, user)
+			}
 		} else {
 			service.respondWithError(w, 500, "An internal error occured")
 		}
 	} else {
-		service.respondWithJSON(w, 201, user)
+		service.respondWithJSON(w, 200, user)
 	}
+
+}
+
+func (service *D20Service) AddPoint(w http.ResponseWriter, r *http.Request) {
+	ctx := context.WithValue(context.Background(), "APIEndpoint", "CreateUser")
+
+	// Get the point
+	var exercisePoint entities.Point
+	err := json.NewDecoder(r.Body).Decode(&exercisePoint)
+
+	if err != nil {
+		// a different error occured
+		service.logger.WithFields(logrus.Fields{
+			"Error Decoding JSON Point": err,
+		}).Debug()
+
+		service.respondWithError(w, 400, "Invalid JSON")
+	}
+
+	err = service.DM.AddUserPoint(ctx, &exercisePoint)
+	if err != nil {
+		resourceNotFoundError, ok := err.(*dal.ResourceNotFoundError)
+		if ok {
+			service.respondWithError(w, 404, resourceNotFoundError.Error())
+		} else {
+			service.respondWithError(w, 500, "An internal error occured")
+		}
+	}
+
+	service.respondWithJSON(w, 200, exercisePoint)
 
 }
 

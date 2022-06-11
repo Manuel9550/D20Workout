@@ -83,6 +83,10 @@ func main() {
 		r.Post("/{username}", service.CreateUser)
 	})
 
+	r.Route("/point", func(r chi.Router) {
+		r.Post("/add", service.CreateUser)
+	})
+
 	// If we are running on Heroku, it will listen on any interface
 	fulladdress := env.Ip + ":" + env.PORT
 	err = http.ListenAndServe(fulladdress, r)
