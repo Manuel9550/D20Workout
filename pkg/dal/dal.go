@@ -82,9 +82,15 @@ func (dm *DBManager) GetUser(ctx context.Context, userName string) (*entities.Us
 }
 
 func (dm *DBManager) CreateUser(ctx context.Context, userName string) (*entities.User, error) {
+	// Does user already exist?
+	_, err := dm.GetUser(ctx, userName)
+	if err != nil {
+		return nil, err
+	}
+
 	insertionStatement := `INSERT INTO D20WorkoutUser(UserName) VALUES($1) RETURNING UserName`
 	createdUser := entities.User{}
-	err := dm.DB.QueryRowContext(ctx, insertionStatement, userName).Scan(&createdUser.Username)
+	err = dm.DB.QueryRowContext(ctx, insertionStatement, userName).Scan(&createdUser.Username)
 
 	if err != nil {
 		dm.Logger.WithFields(logrus.Fields{
