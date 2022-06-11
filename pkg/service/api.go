@@ -3,7 +3,6 @@ package service
 import (
 	"context"
 	"encoding/json"
-	"fmt"
 	"net/http"
 
 	"github.com/Manuel9550/d20-workout/pkg/dal"
@@ -57,11 +56,11 @@ func (service *D20Service) CreateUser(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	err := service.DM.CreateUser(ctx, userName)
+	user, err := service.DM.CreateUser(ctx, userName)
 	if err != nil {
 		service.respondWithError(w, 500, "An internal error occured")
 	} else {
-		service.respondWithJSON(w, 200, fmt.Sprintf("user created: %s", userName))
+		service.respondWithJSON(w, 200, user)
 	}
 
 }

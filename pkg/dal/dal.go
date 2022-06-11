@@ -48,7 +48,7 @@ func NewDBManager(connectionString string, logger *logrus.Logger) (*DBManager, e
 
 func (dm *DBManager) GetUser(ctx context.Context, userName string) (*entities.User, error) {
 
-	queryStatement := `SELECT UserName FROM D20WorkoutUser WHERE UserName = '$1'`
+	queryStatement := `SELECT UserName FROM D20WorkoutUser WHERE UserName = $1`
 
 	foundUser := entities.User{}
 	err := dm.DB.QueryRowContext(ctx, queryStatement, userName).Scan(&foundUser.Username)
@@ -71,20 +71,19 @@ func (dm *DBManager) GetUser(ctx context.Context, userName string) (*entities.Us
 	return &foundUser, nil
 }
 
-func (dm *DBManager) CreateUser(ctx context.Context, userName string) error {
+func (dm *DBManager) CreateUser(ctx context.Context, userName string) (*entities.User, error) {
 
-	insertionStatement := `"INSERT INTO D20WorkoutUser(UserName) VALUES('$1')`
-
-	_, err := dm.DB.ExecContext(ctx, insertionStatement, userName)
+	insertionStatement := `"INSERT INTO D20WorkoutUser(UserName) VALUES($1) RETURNING UserName`
+	createdUser := entities.User{}
+	err := dm.DB.QueryRowContext(ctx, insertionStatement, userName).Scan(createdUser.Username)
 
 	if err != nil {
 		dm.Logger.WithFields(logrus.Fields{
 			"QueryError": err,
 			"Query":      insertionStatement,
 		}).Error()
-		return err
-
+		return nil, err
 	}
 
-	return nil
+	return &createdUser, nil
 }
