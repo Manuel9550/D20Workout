@@ -84,7 +84,7 @@ func main() {
 	})
 
 	r.Route("/point", func(r chi.Router) {
-		r.Post("/add", service.CreateUser)
+		r.Post("/add", service.AddPoint)
 	})
 
 	// If we are running on Heroku, it will listen on any interface
