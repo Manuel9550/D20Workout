@@ -85,7 +85,15 @@ func (dm *DBManager) CreateUser(ctx context.Context, userName string) (*entities
 	// Does user already exist?
 	_, err := dm.GetUser(ctx, userName)
 	if err != nil {
-		return nil, err
+		_, ok := err.(*ResourceNotFoundError)
+		if ok {
+			return nil, &ResourceDuplicateError{
+				resourceName: userName,
+				resourceType: "User",
+			}
+		} else {
+			return nil, err
+		}
 	}
 
 	insertionStatement := `INSERT INTO D20WorkoutUser(UserName) VALUES($1) RETURNING UserName`
