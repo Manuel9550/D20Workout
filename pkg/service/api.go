@@ -101,7 +101,7 @@ func (service *D20Service) AddPoint(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		service.logger.WithFields(logrus.Fields{
 			"Error Decoding JSON Point": err,
-		}).Debug()
+		}).Error()
 
 		service.respondWithError(w, 400, "Invalid JSON for Point")
 		return
