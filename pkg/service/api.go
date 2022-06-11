@@ -58,9 +58,14 @@ func (service *D20Service) CreateUser(w http.ResponseWriter, r *http.Request) {
 
 	user, err := service.DM.CreateUser(ctx, userName)
 	if err != nil {
-		service.respondWithError(w, 500, "An internal error occured")
+		resourceDuplicateError, ok := err.(*dal.ResourceDuplicateError)
+		if ok {
+			service.respondWithError(w, 409, resourceDuplicateError.Error())
+		} else {
+			service.respondWithError(w, 500, "An internal error occured")
+		}
 	} else {
-		service.respondWithJSON(w, 200, user)
+		service.respondWithJSON(w, 201, user)
 	}
 
 }
