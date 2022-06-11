@@ -20,8 +20,17 @@ type ResourceNotFoundError struct {
 	resourceName string
 }
 
+type ResourceDuplicateError struct {
+	resourceType string
+	resourceName string
+}
+
 func (e ResourceNotFoundError) Error() string {
 	return fmt.Sprintf("Could not find resource '%s' of type: '%s'", e.resourceName, e.resourceType)
+}
+
+func (e ResourceDuplicateError) Error() string {
+	return fmt.Sprintf("The resource '%s' of type: '%s' already exists!", e.resourceName, e.resourceType)
 }
 
 func NewDBManager(connectionString string, logger *logrus.Logger) (*DBManager, error) {
@@ -73,9 +82,30 @@ func (dm *DBManager) GetUser(ctx context.Context, userName string) (*entities.Us
 
 func (dm *DBManager) CreateUser(ctx context.Context, userName string) (*entities.User, error) {
 
+	// Don't try to create a user that already exists
+	foundUser, err := dm.GetUser(ctx, userName)
+	if err != nil {
+		_, ok := err.(*ResourceNotFoundError)
+		if !ok {
+			// a different error occured
+			dm.Logger.WithFields(logrus.Fields{
+				"FindUserError": err,
+			}).Error()
+			return nil, err
+		}
+
+	}
+
+	if foundUser != nil {
+		return nil, &ResourceDuplicateError{
+			resourceName: userName,
+			resourceType: "User",
+		}
+	}
+
 	insertionStatement := `INSERT INTO D20WorkoutUser(UserName) VALUES($1) RETURNING UserName`
 	createdUser := entities.User{}
-	err := dm.DB.QueryRowContext(ctx, insertionStatement, userName).Scan(&createdUser.Username)
+	err = dm.DB.QueryRowContext(ctx, insertionStatement, userName).Scan(&createdUser.Username)
 
 	if err != nil {
 		dm.Logger.WithFields(logrus.Fields{
