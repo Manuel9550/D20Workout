@@ -72,7 +72,7 @@ func (dm *DBManager) GetUser(ctx context.Context, userName string) (*entities.Us
 			return nil, err
 		}
 
-		return nil, &ResourceNotFoundError{
+		return nil, ResourceNotFoundError{
 			resourceName: userName,
 			resourceType: "User",
 		}
@@ -112,7 +112,7 @@ func (dm *DBManager) CheckExerciseNumber(ctx context.Context, exerciseNumber int
 			return err
 		}
 
-		return &ResourceNotFoundError{
+		return ResourceNotFoundError{
 			resourceName: strconv.Itoa(exerciseNumber),
 			resourceType: "RollNumber",
 		}
@@ -128,7 +128,8 @@ func (dm *DBManager) ValidatePoint(ctx context.Context, point *entities.Point) e
 		return err
 	}
 
-	if dm.CheckExerciseNumber(ctx, point.ExerciseNumber) != nil {
+	err = dm.CheckExerciseNumber(ctx, point.ExerciseNumber)
+	if err != nil {
 		return err
 	}
 
