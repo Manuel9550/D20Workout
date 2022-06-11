@@ -73,7 +73,7 @@ func (dm *DBManager) GetUser(ctx context.Context, userName string) (*entities.Us
 
 func (dm *DBManager) CreateUser(ctx context.Context, userName string) (*entities.User, error) {
 
-	insertionStatement := `"INSERT INTO D20WorkoutUser(UserName) VALUES($1) RETURNING UserName`
+	insertionStatement := `INSERT INTO D20WorkoutUser(UserName) VALUES($1) RETURNING UserName`
 	createdUser := entities.User{}
 	err := dm.DB.QueryRowContext(ctx, insertionStatement, userName).Scan(createdUser.Username)
 
