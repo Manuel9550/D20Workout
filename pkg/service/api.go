@@ -3,9 +3,11 @@ package service
 import (
 	"context"
 	"encoding/json"
+	"fmt"
 	"net/http"
 
 	"github.com/Manuel9550/d20-workout/pkg/dal"
+	"github.com/go-chi/chi/v5"
 	"github.com/sirupsen/logrus"
 )
 
@@ -25,7 +27,7 @@ func (service *D20Service) CheckUser(w http.ResponseWriter, r *http.Request) {
 	ctx := context.WithValue(context.Background(), "APIEndpoint", "CheckUser")
 
 	// Get the name of the user
-	userName := r.URL.Query().Get("user")
+	userName := chi.URLParam(r, "username")
 	if userName == "" {
 		service.respondWithError(w, 404, "Blank user passed")
 		return
@@ -41,6 +43,25 @@ func (service *D20Service) CheckUser(w http.ResponseWriter, r *http.Request) {
 		}
 	} else {
 		service.respondWithJSON(w, 200, user)
+	}
+
+}
+
+func (service *D20Service) CreateUser(w http.ResponseWriter, r *http.Request) {
+	ctx := context.WithValue(context.Background(), "APIEndpoint", "CreateUser")
+
+	// Get the name of the user
+	userName := chi.URLParam(r, "username")
+	if userName == "" {
+		service.respondWithError(w, 404, "Blank user passed")
+		return
+	}
+
+	err := service.DM.CreateUser(ctx, userName)
+	if err != nil {
+		service.respondWithError(w, 500, "An internal error occured")
+	} else {
+		service.respondWithJSON(w, 200, fmt.Sprintf("user created: %s", userName))
 	}
 
 }

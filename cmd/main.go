@@ -76,7 +76,12 @@ func main() {
 	r.Get("/test", health.GetTest)
 
 	// Assigning the endpoints to the service methods. Make this more clean later!
-	r.Get("/user", service.CheckUser)
+	// User Route
+	r.Route("/user", func(r chi.Router) {
+		// User route takes in a mandatory URL paramater
+		r.Get("/{username}", service.CheckUser)
+		r.Post("/{username}", service.CreateUser)
+	})
 
 	// If we are running on Heroku, it will listen on any interface
 	fulladdress := env.Ip + ":" + env.PORT
