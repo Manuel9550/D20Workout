@@ -75,7 +75,7 @@ func (dm *DBManager) CreateUser(ctx context.Context, userName string) (*entities
 
 	insertionStatement := `INSERT INTO D20WorkoutUser(UserName) VALUES($1) RETURNING UserName`
 	createdUser := entities.User{}
-	err := dm.DB.QueryRowContext(ctx, insertionStatement, userName).Scan(createdUser.Username)
+	err := dm.DB.QueryRowContext(ctx, insertionStatement, userName).Scan(&createdUser.Username)
 
 	if err != nil {
 		dm.Logger.WithFields(logrus.Fields{
