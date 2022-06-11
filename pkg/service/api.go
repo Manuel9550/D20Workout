@@ -4,6 +4,7 @@ import (
 	"context"
 	"encoding/json"
 	"net/http"
+	"time"
 
 	"github.com/Manuel9550/d20-workout/pkg/dal"
 	"github.com/Manuel9550/d20-workout/pkg/entities"
@@ -105,6 +106,9 @@ func (service *D20Service) AddPoint(w http.ResponseWriter, r *http.Request) {
 		service.respondWithError(w, 400, "Invalid JSON for Point")
 		return
 	}
+
+	// Take the current timestamp and add it to the point
+	exercisePoint.Timestamp = time.Now().UTC()
 
 	err = service.DM.AddUserPoint(ctx, &exercisePoint)
 	if err != nil {
