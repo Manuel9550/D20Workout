@@ -83,16 +83,22 @@ func (dm *DBManager) GetUser(ctx context.Context, userName string) (*entities.Us
 
 func (dm *DBManager) CreateUser(ctx context.Context, userName string) (*entities.User, error) {
 	// Does user already exist?
-	_, err := dm.GetUser(ctx, userName)
+	userReturned, err := dm.GetUser(ctx, userName)
 	if err != nil {
 		_, ok := err.(*ResourceNotFoundError)
 		if ok {
-			return nil, &ResourceDuplicateError{
-				resourceName: userName,
-				resourceType: "User",
-			}
+			// That is good, we want the resource to not be found
 		} else {
+			// something else went wrong
 			return nil, err
+		}
+	}
+
+	if userReturned != nil {
+		// Found the user, it isn't a new one
+		return nil, &ResourceDuplicateError{
+			resourceName: userName,
+			resourceType: "User",
 		}
 	}
 
