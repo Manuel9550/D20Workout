@@ -65,27 +65,26 @@ func (service *D20Service) CreateUser(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		_, ok := err.(*dal.ResourceNotFoundError)
 		if ok {
-			// Actually Create the user!
-			user, err := service.DM.CreateUser(ctx, userName)
-			if err != nil {
-				resourceDuplicateError, ok := err.(*dal.ResourceDuplicateError)
-				if ok {
-					service.respondWithError(w, 409, resourceDuplicateError.Error())
-					return
-				} else {
-					service.respondWithError(w, 500, "An internal error occured")
-					return
-				}
-			} else {
-				service.respondWithJSON(w, 201, user)
-				return
-			}
+			// Intentionally left blank: we want the resource not to be found
+		} else {
+			service.respondWithError(w, 500, "An internal error occured")
+			return
+		}
+	}
+
+	// Actually Create the user!
+	user, err = service.DM.CreateUser(ctx, userName)
+	if err != nil {
+		resourceDuplicateError, ok := err.(*dal.ResourceDuplicateError)
+		if ok {
+			service.respondWithError(w, 409, resourceDuplicateError.Error())
+			return
 		} else {
 			service.respondWithError(w, 500, "An internal error occured")
 			return
 		}
 	} else {
-		service.respondWithJSON(w, 200, user)
+		service.respondWithJSON(w, 201, user)
 		return
 	}
 
