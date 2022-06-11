@@ -38,8 +38,10 @@ func (service *D20Service) CheckUser(w http.ResponseWriter, r *http.Request) {
 		resourceNotFoundError, ok := err.(*dal.ResourceNotFoundError)
 		if ok {
 			service.respondWithError(w, 404, resourceNotFoundError.Error())
+			return
 		} else {
 			service.respondWithError(w, 500, "An internal error occured")
+			return
 		}
 	} else {
 		service.respondWithJSON(w, 200, user)
@@ -68,17 +70,22 @@ func (service *D20Service) CreateUser(w http.ResponseWriter, r *http.Request) {
 				resourceDuplicateError, ok := err.(*dal.ResourceDuplicateError)
 				if ok {
 					service.respondWithError(w, 409, resourceDuplicateError.Error())
+					return
 				} else {
 					service.respondWithError(w, 500, "An internal error occured")
+					return
 				}
 			} else {
 				service.respondWithJSON(w, 201, user)
+				return
 			}
 		} else {
 			service.respondWithError(w, 500, "An internal error occured")
+			return
 		}
 	} else {
 		service.respondWithJSON(w, 200, user)
+		return
 	}
 
 }
@@ -91,12 +98,12 @@ func (service *D20Service) AddPoint(w http.ResponseWriter, r *http.Request) {
 	err := json.NewDecoder(r.Body).Decode(&exercisePoint)
 
 	if err != nil {
-		// a different error occured
 		service.logger.WithFields(logrus.Fields{
 			"Error Decoding JSON Point": err,
 		}).Debug()
 
-		service.respondWithError(w, 400, "Invalid JSON")
+		service.respondWithError(w, 400, "Invalid JSON for Point")
+		return
 	}
 
 	err = service.DM.AddUserPoint(ctx, &exercisePoint)
@@ -104,12 +111,15 @@ func (service *D20Service) AddPoint(w http.ResponseWriter, r *http.Request) {
 		resourceNotFoundError, ok := err.(*dal.ResourceNotFoundError)
 		if ok {
 			service.respondWithError(w, 404, resourceNotFoundError.Error())
+			return
 		} else {
 			service.respondWithError(w, 500, "An internal error occured")
+			return
 		}
 	}
 
 	service.respondWithJSON(w, 200, exercisePoint)
+	return
 
 }
 
