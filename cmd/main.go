@@ -81,6 +81,7 @@ func main() {
 		// User route takes in a mandatory URL paramater
 		r.Get("/{username}", service.CheckUser)
 		r.Post("/{username}", service.CreateUser)
+		r.Post("/{username}/points", service.GetUserPoints)
 	})
 
 	r.Route("/point", func(r chi.Router) {

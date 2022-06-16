@@ -113,6 +113,49 @@ func (service *D20Service) AddPoint(w http.ResponseWriter, r *http.Request) {
 
 }
 
+func (service *D20Service) GetUserPoints(w http.ResponseWriter, r *http.Request) {
+	ctx := context.WithValue(context.Background(), "APIEndpoint", "GetUserPoints")
+
+	// Get the name of the user
+	userName := chi.URLParam(r, "username")
+	if userName == "" {
+		service.respondWithError(w, 404, "Blank user passed")
+		return
+	}
+
+	// Get the timestamps
+	var pointsRequest PointsRequest
+	err := json.NewDecoder(r.Body).Decode(&pointsRequest)
+
+	if err != nil {
+		service.logger.WithFields(logrus.Fields{
+			"Error Decoding JSON PointsRequest": err,
+		}).Error()
+
+		service.respondWithError(w, 400, "Invalid JSON for PointsRequest")
+		return
+	}
+
+	points, err := service.DM.GetUserPoints(ctx, pointsRequest.UserName, pointsRequest.StartTime, pointsRequest.EndTime)
+	if err != nil {
+		resourceNotFoundError, ok := err.(*dal.ResourceNotFoundError)
+		if ok {
+			service.respondWithError(w, 404, resourceNotFoundError.Error())
+			return
+		} else {
+			service.respondWithError(w, 500, "An internal error occured")
+			return
+		}
+	}
+
+	returnedPoints := entities.ExercisePoints{}
+	returnedPoints.Username = pointsRequest.UserName
+	returnedPoints.Points = points
+	service.respondWithJSON(w, 200, returnedPoints)
+	return
+
+}
+
 func (service *D20Service) respondWithError(w http.ResponseWriter, code int, message string) {
 	err := service.respondWithJSON(w, code, map[string]string{"error": message})
 	if err == nil {

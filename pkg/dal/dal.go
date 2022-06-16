@@ -5,6 +5,7 @@ import (
 	"database/sql"
 	"fmt"
 	"strconv"
+	"time"
 
 	"github.com/Manuel9550/d20-workout/pkg/entities"
 	_ "github.com/lib/pq"
@@ -178,6 +179,76 @@ func (dm *DBManager) AddUserPoint(ctx context.Context, exercisePoint *entities.P
 	}
 
 	return nil
+}
+
+func (dm *DBManager) checkUserExists(ctx context.Context, userName string) (bool, error) {
+	// Does user already exist?
+	_, err := dm.GetUser(ctx, userName)
+	if err != nil {
+		_, ok := err.(*ResourceNotFoundError)
+		if ok {
+			// Return false
+			return false, err
+		} else {
+			// something else went wrong
+			return false, err
+		}
+	}
+
+	// User actually exists
+	return true, nil
+}
+
+func (dm *DBManager) GetUserPoints(ctx context.Context, userName string, startTime time.Time, endTime time.Time) ([]entities.Point, error) {
+	// Does user already exist?
+	exists, err := dm.checkUserExists(ctx, userName)
+	if err != nil {
+		return nil, err
+	}
+
+	if !exists {
+		return nil, &ResourceNotFoundError{
+			resourceName: userName,
+			resourceType: "User",
+		}
+	}
+
+	queryStatement := `SELECT Username, RollNumber, AmountDone, Timestamp FROM FinishedPoint WHERE Timestamp >= $1 AND Timestamp < $2`
+	rows, err := dm.DB.QueryContext(ctx, queryStatement, startTime, endTime)
+
+	if err != nil {
+		dm.Logger.WithFields(logrus.Fields{
+			"QueryError": err,
+			"Query":      queryStatement,
+		}).Error()
+		return nil, err
+	}
+
+	defer rows.Close()
+
+	points := []entities.Point{}
+	var point entities.Point
+	for rows.Next() {
+		err := rows.Scan(&point.Username, &point.ExerciseNumber, &point.Amount, &point.Timestamp)
+		if err != nil {
+			dm.Logger.WithFields(logrus.Fields{
+				"Scan error": err,
+				"Scan Type":  "point",
+			}).Error()
+			return nil, err
+		}
+
+		points = append(points, point)
+	}
+	err = rows.Err()
+	if err != nil {
+		dm.Logger.WithFields(logrus.Fields{
+			"Error with rows": err,
+		}).Error()
+		return nil, err
+	}
+
+	return points, nil
 }
 
 /*
