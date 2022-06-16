@@ -116,14 +116,7 @@ func (service *D20Service) AddPoint(w http.ResponseWriter, r *http.Request) {
 func (service *D20Service) GetUserPoints(w http.ResponseWriter, r *http.Request) {
 	ctx := context.WithValue(context.Background(), "APIEndpoint", "GetUserPoints")
 
-	// Get the name of the user
-	userName := chi.URLParam(r, "username")
-	if userName == "" {
-		service.respondWithError(w, 404, "Blank user passed")
-		return
-	}
-
-	// Get the timestamps
+	// Get the user/timestamps
 	var pointsRequest PointsRequest
 	err := json.NewDecoder(r.Body).Decode(&pointsRequest)
 
@@ -135,6 +128,10 @@ func (service *D20Service) GetUserPoints(w http.ResponseWriter, r *http.Request)
 		service.respondWithError(w, 400, "Invalid JSON for PointsRequest")
 		return
 	}
+
+	// Convert the timestamps found to UTC
+	pointsRequest.StartTime = pointsRequest.StartTime.UTC()
+	pointsRequest.EndTime = pointsRequest.EndTime.UTC()
 
 	points, err := service.DM.GetUserPoints(ctx, pointsRequest.UserName, pointsRequest.StartTime, pointsRequest.EndTime)
 	if err != nil {

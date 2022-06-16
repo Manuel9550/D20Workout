@@ -213,8 +213,8 @@ func (dm *DBManager) GetUserPoints(ctx context.Context, userName string, startTi
 		}
 	}
 
-	queryStatement := `SELECT Username, RollNumber, AmountDone, Timestamp FROM FinishedPoint WHERE Timestamp >= $1 AND Timestamp < $2`
-	rows, err := dm.DB.QueryContext(ctx, queryStatement, startTime, endTime)
+	queryStatement := `SELECT Username, RollNumber, AmountDone, Timestamp FROM FinishedPoint WHERE Timestamp >= $1 AND Timestamp < $2 AND Username = $3`
+	rows, err := dm.DB.QueryContext(ctx, queryStatement, startTime, endTime, userName)
 
 	if err != nil {
 		dm.Logger.WithFields(logrus.Fields{
