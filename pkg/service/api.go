@@ -117,14 +117,14 @@ func (service *D20Service) GetUserPoints(w http.ResponseWriter, r *http.Request)
 	ctx := context.WithValue(context.Background(), "APIEndpoint", "GetUserPoints")
 
 	// Get the name of the user
-	userName := chi.URLParam(r, "username")
+	userName := r.URL.Query().Get("username")
 	if userName == "" {
 		service.respondWithError(w, 404, "Blank user passed")
 		return
 	}
 
 	// Get the start time
-	startTimeString := chi.URLParam(r, "start")
+	startTimeString := r.URL.Query().Get("start")
 	if startTimeString == "" {
 		service.respondWithError(w, 404, "No start time entered")
 		return
@@ -137,7 +137,7 @@ func (service *D20Service) GetUserPoints(w http.ResponseWriter, r *http.Request)
 	}
 
 	// Get the end time
-	endTimeString := chi.URLParam(r, "end")
+	endTimeString := r.URL.Query().Get("end")
 	if endTimeString == "" {
 		service.respondWithError(w, 404, "No end time entered")
 		return
