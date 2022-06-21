@@ -116,24 +116,44 @@ func (service *D20Service) AddPoint(w http.ResponseWriter, r *http.Request) {
 func (service *D20Service) GetUserPoints(w http.ResponseWriter, r *http.Request) {
 	ctx := context.WithValue(context.Background(), "APIEndpoint", "GetUserPoints")
 
-	// Get the user/timestamps
-	var pointsRequest PointsRequest
-	err := json.NewDecoder(r.Body).Decode(&pointsRequest)
+	// Get the name of the user
+	userName := chi.URLParam(r, "username")
+	if userName == "" {
+		service.respondWithError(w, 404, "Blank user passed")
+		return
+	}
 
+	// Get the start time
+	startTimeString := chi.URLParam(r, "start")
+	if startTimeString == "" {
+		service.respondWithError(w, 404, "No start time entered")
+		return
+	}
+
+	startTime, err := time.Parse("2006-01-02T15:04:05-0700", startTimeString)
 	if err != nil {
-		service.logger.WithFields(logrus.Fields{
-			"Error Decoding JSON PointsRequest": err,
-		}).Error()
+		service.respondWithError(w, 400, "Incorrect time format for start time")
+		return
+	}
 
-		service.respondWithError(w, 400, "Invalid JSON for PointsRequest")
+	// Get the end time
+	endTimeString := chi.URLParam(r, "end")
+	if endTimeString == "" {
+		service.respondWithError(w, 404, "No end time entered")
+		return
+	}
+
+	endTime, err := time.Parse("2006-01-02T15:04:05-0700", endTimeString)
+	if err != nil {
+		service.respondWithError(w, 400, "Incorrect time format for end time")
 		return
 	}
 
 	// Convert the timestamps found to UTC
-	pointsRequest.StartTime = pointsRequest.StartTime.UTC()
-	pointsRequest.EndTime = pointsRequest.EndTime.UTC()
+	startTime = startTime.UTC()
+	endTime = endTime.UTC()
 
-	points, err := service.DM.GetUserPoints(ctx, pointsRequest.UserName, pointsRequest.StartTime, pointsRequest.EndTime)
+	points, err := service.DM.GetUserPoints(ctx, userName, startTime, endTime)
 	if err != nil {
 		resourceNotFoundError, ok := err.(*dal.ResourceNotFoundError)
 		if ok {
@@ -146,7 +166,7 @@ func (service *D20Service) GetUserPoints(w http.ResponseWriter, r *http.Request)
 	}
 
 	returnedPoints := entities.ExercisePoints{}
-	returnedPoints.Username = pointsRequest.UserName
+	returnedPoints.Username = userName
 	returnedPoints.Points = points
 	service.respondWithJSON(w, 200, returnedPoints)
 	return
