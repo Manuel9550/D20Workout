@@ -130,7 +130,7 @@ func (service *D20Service) GetUserPoints(w http.ResponseWriter, r *http.Request)
 		return
 	}
 
-	startTime, err := time.Parse("2006-01-02T15:04:05-0700", startTimeString)
+	startTime, err := time.Parse("2006-01-02T15:04:05", startTimeString)
 	if err != nil {
 		service.respondWithError(w, 400, "Incorrect time format for start time")
 		return
@@ -143,7 +143,7 @@ func (service *D20Service) GetUserPoints(w http.ResponseWriter, r *http.Request)
 		return
 	}
 
-	endTime, err := time.Parse("2006-01-02T15:04:05-0700", endTimeString)
+	endTime, err := time.Parse("2006-01-02T15:04:05", endTimeString)
 	if err != nil {
 		service.respondWithError(w, 400, "Incorrect time format for end time")
 		return
