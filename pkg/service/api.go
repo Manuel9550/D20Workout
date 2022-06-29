@@ -173,6 +173,26 @@ func (service *D20Service) GetUserPoints(w http.ResponseWriter, r *http.Request)
 
 }
 
+func (service *D20Service) GetAllUsers(w http.ResponseWriter, r *http.Request) {
+	ctx := context.WithValue(context.Background(), "APIEndpoint", "GetAllusers")
+
+	users, err := service.DM.GetUsers(ctx)
+	if err != nil {
+		resourceNotFoundError, ok := err.(*dal.ResourceNotFoundError)
+		if ok {
+			service.respondWithError(w, 404, resourceNotFoundError.Error())
+			return
+		} else {
+			service.respondWithError(w, 500, "An internal error occured")
+			return
+		}
+	}
+
+	service.respondWithJSON(w, 200, users)
+	return
+
+}
+
 func (service *D20Service) respondWithError(w http.ResponseWriter, code int, message string) {
 	err := service.respondWithJSON(w, code, map[string]string{"error": message})
 	if err == nil {

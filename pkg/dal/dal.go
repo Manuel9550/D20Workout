@@ -82,6 +82,47 @@ func (dm *DBManager) GetUser(ctx context.Context, userName string) (*entities.Us
 	return &foundUser, nil
 }
 
+func (dm *DBManager) GetUsers(ctx context.Context) ([]entities.User, error) {
+
+	queryStatement := `SELECT UserName FROM D20WorkoutUser`
+
+	rows, err := dm.DB.QueryContext(ctx, queryStatement)
+
+	if err != nil {
+		dm.Logger.WithFields(logrus.Fields{
+			"QueryError": err,
+			"Query":      queryStatement,
+		}).Error()
+		return nil, err
+	}
+
+	defer rows.Close()
+
+	users := []entities.User{}
+	var user entities.User
+	for rows.Next() {
+		err := rows.Scan(&user.Username)
+		if err != nil {
+			dm.Logger.WithFields(logrus.Fields{
+				"Scan error": err,
+				"Scan Type":  "user",
+			}).Error()
+			return nil, err
+		}
+
+		users = append(users, user)
+	}
+	err = rows.Err()
+	if err != nil {
+		dm.Logger.WithFields(logrus.Fields{
+			"Error with rows": err,
+		}).Error()
+		return nil, err
+	}
+
+	return users, nil
+}
+
 func (dm *DBManager) CreateUser(ctx context.Context, userName string) (*entities.User, error) {
 	// Does user already exist?
 	userReturned, err := dm.GetUser(ctx, userName)
@@ -250,29 +291,3 @@ func (dm *DBManager) GetUserPoints(ctx context.Context, userName string, startTi
 
 	return points, nil
 }
-
-/*
-
-func (dm *DBManager) SyncUser(ctx context.Context, exercisePoints entities.ExercisePoints) (*entities.User, error) {
-
-	// Check that the user exists
-	_, err := dm.GetUser(ctx, exercisePoints.Username)
-	if err != nil {
-		return nil, err
-	}
-
-	insertionStatement := `INSERT INTO D20WorkoutUser(UserName) VALUES($1) RETURNING UserName`
-	createdUser := entities.User{}
-	err = dm.DB.QueryRowContext(ctx, insertionStatement, userName).Scan(&createdUser.Username)
-
-	if err != nil {
-		dm.Logger.WithFields(logrus.Fields{
-			"QueryError": err,
-			"Query":      insertionStatement,
-		}).Error()
-		return nil, err
-	}
-
-	return &createdUser, nil
-}
-*/
