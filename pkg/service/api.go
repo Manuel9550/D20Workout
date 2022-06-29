@@ -196,7 +196,7 @@ func (service *D20Service) DeleteUser(w http.ResponseWriter, r *http.Request) {
 	ctx := context.WithValue(context.Background(), "APIEndpoint", "DeleteUser")
 
 	// Get the name of the user
-	userName := r.URL.Query().Get("username")
+	userName := chi.URLParam(r, "username")
 	if userName == "" {
 		service.respondWithError(w, 404, "Blank user passed")
 		return
