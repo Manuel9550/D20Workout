@@ -159,8 +159,36 @@ func (dm *DBManager) CreateUser(ctx context.Context, userName string) (*entities
 	return &createdUser, nil
 }
 
+func (dm *DBManager) DeleteUser(ctx context.Context, userName string) error {
+	// Does user exist?
+	exists, err := dm.checkUserExists(ctx, userName)
+	if err != nil {
+		return err
+	}
+
+	if !exists {
+		return &ResourceNotFoundError{
+			resourceName: userName,
+			resourceType: "User",
+		}
+	}
+
+	deleteStatement := `DELETE FROM D20WorkoutUser WHERE UserName = $1;`
+	_, err = dm.DB.ExecContext(ctx, deleteStatement, userName)
+
+	if err != nil {
+		dm.Logger.WithFields(logrus.Fields{
+			"QueryError": err,
+			"Query":      deleteStatement,
+		}).Error()
+		return err
+	}
+
+	return nil
+}
+
 func (dm *DBManager) CheckExerciseNumber(ctx context.Context, exerciseNumber int) error {
-	queryStatement := `SELECT RollNumber FROM Exercise WHERE RollNumber = $1`
+	queryStatement := `SELECT RollNumber FROM Exercise WHERE RollNumber = $1;`
 
 	foundExercise := entities.Exercise{}
 	err := dm.DB.QueryRowContext(ctx, queryStatement, exerciseNumber).Scan(&foundExercise.RollNumber)

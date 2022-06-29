@@ -190,7 +190,34 @@ func (service *D20Service) GetAllUsers(w http.ResponseWriter, r *http.Request) {
 
 	service.respondWithJSON(w, 200, users)
 	return
+}
 
+func (service *D20Service) DeleteUser(w http.ResponseWriter, r *http.Request) {
+	ctx := context.WithValue(context.Background(), "APIEndpoint", "DeleteUser")
+
+	// Get the name of the user
+	userName := r.URL.Query().Get("username")
+	if userName == "" {
+		service.respondWithError(w, 404, "Blank user passed")
+		return
+	}
+
+	err := service.DM.DeleteUser(ctx, userName)
+	if err != nil {
+		resourceNotFoundError, ok := err.(*dal.ResourceNotFoundError)
+		if ok {
+			service.respondWithError(w, 404, resourceNotFoundError.Error())
+			return
+		} else {
+			service.respondWithError(w, 500, "An internal error occured")
+			return
+		}
+	}
+
+	service.respondWithJSON(w, 200, map[string]string{
+		"message": "success",
+	})
+	return
 }
 
 func (service *D20Service) respondWithError(w http.ResponseWriter, code int, message string) {

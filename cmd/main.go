@@ -82,6 +82,7 @@ func main() {
 		r.Get("/{username}", service.CheckUser)
 		r.Post("/{username}", service.CreateUser)
 		r.Get("/all", service.GetAllUsers)
+		r.Delete("/{username}", service.DeleteUser)
 	})
 
 	r.Route("/point", func(r chi.Router) {
