@@ -173,6 +173,19 @@ func (dm *DBManager) DeleteUser(ctx context.Context, userName string) error {
 		}
 	}
 
+	// Delete all FinishedPoints that belong to the user
+	deletePointsStatement := `DELETE FROM FinishedPoint WHERE UserName = $1;`
+	_, err = dm.DB.ExecContext(ctx, deletePointsStatement, userName)
+
+	if err != nil {
+		dm.Logger.WithFields(logrus.Fields{
+			"QueryError": err,
+			"Query":      deletePointsStatement,
+		}).Error()
+		return err
+	}
+
+	// Delete the user
 	deleteStatement := `DELETE FROM D20WorkoutUser WHERE UserName = $1;`
 	_, err = dm.DB.ExecContext(ctx, deleteStatement, userName)
 
